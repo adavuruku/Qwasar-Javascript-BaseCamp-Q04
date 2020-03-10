@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Qwasar Quest 04</title>
+    </head>
+    <body >
+        <input type="text" onchange="input_value_changed()" id="textValue" />
+        <br/><br/>
+        <div id="json_weather"></div>
+    </body>
+    <script type="text/javascript">
+        function input_value_changed(){
+            let search = document.getElementById("textValue").value
+            document.getElementById('json_weather').innerHTML=""
+            sendRequest(search,noTimes=1)
+        }
+
+        //get xmlHttp Object
+        function GetXmlHttpObject()
+        {
+            var xmlHttp=null;
+            try{
+                xmlHttp=new XMLHttpRequest();
+            }catch (e){
+                try{
+                    xmlHttp=new ActiveXObject("Msxml2.XMLHTTP");
+                }catch (e){
+                    xmlHttp=new ActiveXObject("Microsoft.XMLHTTP");
+                }
+            }
+            return xmlHttp;
+        }
+
+        function processFirstResponse(myjs){
+            return myjs.length === 1 ? myjs[0].woeid : ""
+        }
+        function processSecondResponse(myjs){
+            return myjs.consolidated_weather.length > 0 ? myjs.consolidated_weather[0].weather_state_name : "Not Found"
+        }
+        
+
+        function sendRequest(searchValue, noTimes){
+            xmlHttp=GetXmlHttpObject();
+            var url = noTimes === 2 ? "https://cors-anywhere.herokuapp.com/https://www.metaweather.com/api/location/"+searchValue
+            :"https://cors-anywhere.herokuapp.com/https://www.metaweather.com/api/location/search/?query="+searchValue;
+            xmlHttp.onreadystatechange = () =>{
+                if (xmlHttp.readyState === 4 && xmlHttp.status === 200)
+                {
+                    if(xmlHttp.responseText){
+                        if (noTimes===1){
+                            let woeid = processFirstResponse(JSON.parse(xmlHttp.responseText));
+                            if (woeid != "")
+                                sendRequest(woeid, noTimes = 2)
+                            else
+                                document.getElementById('json_weather').innerHTML="Not Found"
+                        }else{
+                            document.getElementById('json_weather').innerHTML= processSecondResponse(JSON.parse(xmlHttp.responseText));
+                        }
+                    }
+                    
+                }
+            } 
+            xmlHttp.open("GET",url,true);
+            xmlHttp.setRequestHeader("Content-type", 'application/json');
+            xmlHttp.send();
+        }
+        
+    </script>
+</html>

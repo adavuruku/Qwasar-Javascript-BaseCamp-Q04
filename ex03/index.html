@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Qwasar Quest 04</title>
+    </head>
+    <body >
+        <div id="my_box_realtime">
+        </div>
+    </body>
+    <script type="text/javascript">
+        function GetXmlHttpObject()
+        {
+            var xmlHttp=null;
+            try{
+                xmlHttp=new XMLHttpRequest();
+            }catch (e){
+                try{
+                        xmlHttp=new ActiveXObject("Msxml2.XMLHTTP");
+                }catch (e){
+                    xmlHttp=new ActiveXObject("Microsoft.XMLHTTP");
+                }
+            }
+            return xmlHttp;
+        }
+        function processResponse(myjs){
+            let today = new Date();
+            let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+            let i = 0
+            let len = myjs.consolidated_weather.length
+            let res = ""
+            while (i < len){
+                var dd = new Date(myjs.consolidated_weather[i].applicable_date);
+                let jsDate = dd.getFullYear()+'-'+(dd.getMonth()+1)+'-'+dd.getDate()
+                if (jsDate == date){
+                    res = myjs.consolidated_weather[i].weather_state_name
+                    break
+                }
+                i++;
+            }
+            return res
+        }
+        function ResponseReceived() 
+        { 
+            if (xmlHttp.readyState=== 4 && this.status === 200)
+            {
+                if(xmlHttp.responseText){
+                    document.getElementById('my_box_realtime').innerHTML="";
+                    document.getElementById('my_box_realtime').innerHTML= processResponse(JSON.parse(xmlHttp.responseText));
+                }
+                console.log(this.status)
+            }
+        }
+
+        xmlHttp=GetXmlHttpObject();
+        var url="https://cors-anywhere.herokuapp.com/https://www.metaweather.com/api/location/44418/"
+
+        xmlHttp.onreadystatechange=ResponseReceived;
+        xmlHttp.open("GET",url,true);
+        xmlHttp.setRequestHeader("accept", 'application/json');
+        xmlHttp.send();
+    </script>
+</html>
